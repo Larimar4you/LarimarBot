@@ -1,1 +1,1 @@
-worker: node dreaded.js
+worker:  node dreaded.js
