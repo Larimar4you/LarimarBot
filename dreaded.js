@@ -1,138 +1,100 @@
-const makeWASocket = require("@whiskeysockets/baileys").default;
-const { BufferJSON, WA_DEFAULT_EPHEMERAL, generateWAMessageFromContent, proto, generateWAMessageContent, generateWAMessage, prepareWAMessageMedia, areJidsSameUser, getContentType } = require("@whiskeysockets/baileys");
-const { Sticker, createSticker, StickerTypes } = require('wa-sticker-formatter');
-const util = require("util");
-const { useMultiFileAuthState, jidDecode, makeInMemoryStore, DisconnectReason, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
-const logger = require("@whiskeysockets/baileys/lib/Utils/logger").default;
+const {
+  default: makeWASocket,
+  useMultiFileAuthState,
+  fetchLatestBaileysVersion,
+  DisconnectReason,
+  makeCacheableSignalKeyStore,
+} = require("@whiskeysockets/baileys");
+
 const pino = require("pino");
-const gp = ["254768827492"];
-const fs = require("fs");
-const figlet = require("figlet");
+const qrcode = require("qrcode-terminal");
 const chalk = require("chalk");
-const os = require("os");
-const speed = require("performance-now");
-const timestampe = speed();
-const dreadedspeed = speed() - timestampe;
+const figlet = require("figlet");
 
-const spinnies = new (require('spinnies'))();
-
-const { Boom } = require("@hapi/boom");
-const color = (text, color) => {
-  return !color ? chalk.green(text) : chalk.keyword(color)(text);
-};
-
-
-// const { Socket } = Extra;
-global.store = makeInMemoryStore({
-  logger: pino().child({
-    level: 'silent',
-    stream: 'store'
-  })
-});
-
-function smsg(m, conn) {
-  if (!m) return;
-  let M = proto.WebMessageInfo;
-  if (m.key) {
-    m.id = m.key.id;
-    m.isBaileys = m.id.startsWith("BAE5") && m.id.length === 16;
-    m.chat = m.key.remoteJid;
-    m.fromMe = m.key.fromMe;
-    m.isGroup = m.chat.endsWith("@g.us");
-    m.sender = conn.decodeJid((m.fromMe && conn.user.id) || m.participant || m.key.participant || m.chat || "");
-    if (m.isGroup) m.participant = conn.decodeJid(m.key.participant) || "";
-  }
-  return m;
-}
-
-async function main() {
-  // const main = async () => {
-
-  const { state, saveCreds } = await useMultiFileAuthState('session');
+async function startBot() {
   console.log(
-    color(
-      figlet.textSync("MULANDI    BOT", {
+    chalk.cyan(
+      figlet.textSync("LARIMAR BOT", {
         font: "Standard",
         horizontalLayout: "default",
-        vertivalLayout: "default",
-        whitespaceBreak: false,
       }),
-      "red"
-    )
+    ),
   );
 
+  const { state, saveCreds } = await useMultiFileAuthState("./session");
+  const { version } = await fetchLatestBaileysVersion();
+
   const sock = makeWASocket({
-    logger: pino({
-      level: 'silent'
-    }),
-    printQRInTerminal: true,
-    browser: ['Dreaded Active', 'safari', '1.0.0'],
-    auth: state,
-    qrTimeout: 20000000,
+    version,
+    logger: pino({ level: "silent" }),
+    printQRInTerminal: false,
+    auth: {
+      creds: state.creds,
+      keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "silent" })),
+    },
+    browser: ["LarimarBot", "Chrome", "1.0.0"],
   });
 
-  sock.ev.on('messages.upsert', async chatUpdate => {
-    m = chatUpdate.messages[0];
-    m.chat = m.key.remoteJid;
-    m.fromMe = m.key.fromMe;
-    m.sender = sock.decodeJid((m.fromMe && sock.user.id) || m.participant || m.key.participant || m.chat);
+  sock.ev.on("connection.update", (update) => {
+    const { connection, qr, lastDisconnect } = update;
 
-    const groupMetadata = m.isGroup ? await sock.groupMetadata(m.chat).catch((e) => {}) : "";
-    const groupName = m.isGroup ? groupMetadata.subject : "";
+    if (qr) {
+      console.log(
+        chalk.cyan(`
+╔══════════════════════════════════════════╗
+║        🌊  SCAN LARIMARBOT QR  🌊        ║
+╚══════════════════════════════════════════╝
+`),
+      );
 
-    if (!m.message) return;
-
-    if (m.chat.endsWith('@s.whatsapp.net')) {
-              sock.sendPresenceUpdate('recording', m.chat)
-    }      if (m.chat.endsWith('broadcast')) {
-    sock.readMessages([m.key]);
-      const status = 'I used to think am just dreaming '
-await sock.updateProfileStatus(status);
+      console.log(chalk.cyan("Scan this QR code:\n"));
+      qrcode.generate(qr, { small: true });
     }
-   
-  });
 
-    sock.decodeJid = (jid) => {
-    if (!jid) return jid;
-    if (/:\d+@/gi.test(jid)) {
-      let decode = jidDecode(jid) || {};
-      return (decode.user && decode.server && decode.user + "@" + decode.server) || jid;
-    } else return jid;
-  };
-
-  sock.ev.on('connection.update', async (update) => {
-    const {
-      connection,
-      lastDisconnect,
-      qr
-    } = update;
-    if (lastDisconnect == 'undefined' && qr != 'undefined') {
-      qrcode.generate(qr, {
-        small: true
-      });
+    if (connection === "open") {
+      console.log(chalk.green("🌊 LarimarBot connected successfully!"));
     }
-    if (connection === 'connecting') {
-      spinnies.add('start', {
-        text: 'Connecting Now. . .'
-      });
-    } else if (connection === 'open') {
-      spinnies.succeed('start', {
-        text: `Successfully Connected. You have logged in as ${sock.user.name}`
-      });
-    } else if (connection === 'close') {
-      if (lastDisconnect.error.output.statusCode == DisconnectReason.loggedOut) {
-        spinnies.fail('start', {
-          text: `Can't connect!`
-        });
 
-        process.exit(0);
+    if (connection === "close") {
+      const reason = lastDisconnect?.error?.output?.statusCode;
+
+      const shouldReconnect =
+        reason !== DisconnectReason.loggedOut &&
+        reason !== 401 &&
+        reason !== 403;
+
+      if (shouldReconnect) {
+        console.log(chalk.yellow("Reconnecting..."));
+        setTimeout(() => startBot(), 2000);
       } else {
-        main().catch(() => main());
+        console.log(
+          chalk.red("Logged out. Delete session folder and restart."),
+        );
+        process.exit();
       }
     }
   });
 
-  sock.ev.on('creds.update', saveCreds);
-};
+  sock.ev.on("creds.update", saveCreds);
 
-main();
+  sock.ev.on("messages.upsert", async ({ messages }) => {
+    const msg = messages[0];
+    if (!msg.message) return;
+
+    const sender = msg.key.remoteJid;
+    const text =
+      msg.message.conversation || msg.message.extendedTextMessage?.text || null;
+
+    console.log(chalk.blue(`Message from ${sender}: ${text}`));
+
+    if (!text) return;
+
+    if (text.toLowerCase() === "hi") {
+      await sock.sendMessage(sender, {
+        text: "Hello! 🌊 LarimarBot is online.",
+      });
+    }
+  });
+}
+
+startBot();
