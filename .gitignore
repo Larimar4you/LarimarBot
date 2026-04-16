@@ -1,3 +1,12 @@
 node_modules/
-session/
+
+# env
 .env
+.env.*
+
+# sessions / auth
+session/
+auth_info_baileys/
+baileys_auth_info/
+creds.json
+*.session
