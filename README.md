@@ -21,7 +21,7 @@ git clone https://github.com/Larimar4you/LarimarBot.git
 cd LarimarBot
 npm install
 Usage
-node dreaded.js
+node bot.js
 
 Follow the console instructions to authenticate (QR code if required).
 
@@ -35,7 +35,7 @@ Ensure .env is listed in .gitignore.
 
 Project Structure
 LarimarBot/
-├── dreaded.js
+├── bot.js
 ├── package.json
 ├── package-lock.json
 ├── Procfile
