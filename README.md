@@ -1,83 +1,65 @@
 💎 LarimarBot ASCII Logo
 
-⭐ About LarimarBot
-LarimarBot is a lightweight WhatsApp automation bot built by Larissa (Larimar4you) using
-Baileys and Node.js.
+A WhatsApp bot built with Node.js and the Baileys library, focused on simplicity, automation, and extensibility.
 
-It connects through WhatsApp Web and allows you to automate replies, create custom commands, generate stickers, download media, and more.
+Overview
 
-⚡ Features
-Auto‑reply to messages
+LarimarBot is a lightweight foundation for building WhatsApp automation tools.
+It is designed to be easy to set up, maintain, and extend with custom features.
 
-Custom commands
-
-Stable multi‑device session handling
-
-Easy deployment on Termux, Linux, or VPS
-
-Fully customizable
-
-100% owned and controlled by you
-
-🍴 Fork This Repository
-Before installing, fork the project so LarimarBot becomes fully yours.
-
-👉 https://github.com/Larimar4you/YOUR_REPO/fork (github.com in Bing)  
-(Replace YOUR_REPO with your repository name)
-
-📱 Install via Termux
-Download Termux:
-https://f-droid.org/en/packages/com.termux/
-
-bash
-termux-setup-storage
-pkg update
-pkg upgrade
-pkg install wget
-pkg install ffmpeg
-pkg install nodejs
-pkg install git -y
-
-git clone https://github.com/Larimar4you/YOUR_REPO
-cd YOUR_REPO
-
-rm -rf session
+Features
+Message handling via WhatsApp
+Minimal setup and fast start
+Extensible structure for custom commands
+Built on top of Baileys API
+Tech Stack
+Node.js
+@whiskeysockets/baileys
+JavaScript (ES6+)
+Installation
+git clone https://github.com/Larimar4you/LarimarBot.git
+cd LarimarBot
 npm install
-
-▶️ Run the Bot
-
-bash
+Usage
 node dreaded.js
-Scan the QR code via:
 
-WhatsApp → Settings → Linked Devices → Link a Device
+Follow the console instructions to authenticate (QR code if required).
 
-🖥 Install on Linux / Ubuntu / VPS
+Configuration
 
-bash
-sudo su
-apt update
-apt upgrade
-apt install wget
-apt install ffmpeg
-apt install nodejs
-apt install git -y
+Store sensitive data using environment variables:
 
-git clone https://github.com/Larimar4you/YOUR_REPO
-cd YOUR_REPO
+BOT_NAME=LarimarBot
 
-rm -rf session
-npm install
-🔗 Linked Devices
-After scanning the QR code, your session (creds.json) will be created automatically.
+Ensure .env is listed in .gitignore.
 
-Upload it to your server if needed.
+Project Structure
+LarimarBot/
+├── dreaded.js
+├── package.json
+├── package-lock.json
+├── Procfile
+├── README.md
+└── .gitignore
+Security
+Never commit .env files
+Do not expose session or credential files
+Rotate tokens if they were ever exposed
+Contributing
 
-💬 Author
-GitHub: https://github.com/Larimar4you
+Contributions are welcome.
 
-📜 License
-MIT License
-© 2026 LarimarBot by Larissa
+Fork the repository
+Create a branch (feature/your-feature)
+Commit changes
+Push to your fork
+Open a Pull Request
+License
+
+GPL-3.0 License
+
+Author
+
+Larimar4you
 
 🌊 LarimarBot — crafted with clarity, elegance, and control!
