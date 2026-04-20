@@ -41,6 +41,7 @@ LarimarBot/
 ├── Procfile
 ├── README.md
 └── .gitignore
+
 Security
 Never commit .env files
 Do not expose session or credential files
